@@ -1,0 +1,3 @@
+flask                 # Web framework
+psycopg2-binary       # PostgreSQL driver
+redis                 # Redis client
