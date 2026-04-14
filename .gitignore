@@ -1,0 +1,29 @@
+# Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments proved
+venv/
+env/
+
+# VS Code settings
+.vscode/
+
+# Git metadata (usually not ignored, but if you want to exclude local git files)
+
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+
+*.log
+
+# Shared object files (compiled extensions)
+*.so
+
+# Environment variables file
+.env
