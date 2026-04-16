@@ -129,3 +129,88 @@ http://localhost:5000/cache - Tests Redis cache functionality.
     - Persistent data storage using Docker volumes.
 
     - Basic caching strategies using Redis.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+**Next**: Pushing to ACR --> Deploying to App Service
+
+**"PUSHING" DOCKER IMAGES TO AZURE CONTAINER REGISTRY (ACR) AND "DEPLOYING" TO AZURE APP SERVICE**
+
+This guide explains how to push your backend and frontend Docker images to Azure Container Registry (ACR) and deploy them to Azure App Service. It also clarifies the role of each image. 
+
+The project uses four Docker images:
+
+    - Backend: Custom image you built and customized.
+
+    - Frontend: Custom image you built and customized.
+
+    - Database: Official Postgres image (postgres:15).
+
+    - Cache: Official Redis image (redis:alpine).
+
+
+**Step 1: Set Up Azure Container Registry (ACR)**
+
+Create an Azure Container Registry in your Azure portal or via CLI.
+
+Log in to ACR from your local machine:
+
+    az acr login --name <your-acr-name>
+
+**Step 2: Tag and Push Your Images to ACR**
+
+For each custom image (backend and frontend), tag it with your ACR login server and push:
+
+- Tag backend image
+
+        docker tag backend <your-acr-name>.azurecr.io/backend:latest
+
+- Push backend image
+  
+        docker push <your-acr-name>.azurecr.io/backend:latest
+
+- Tag frontend image
+  
+        docker tag frontend <your-acr-name>.azurecr.io/frontend:latest
+
+- Push frontend image
+  
+        docker push <your-acr-name>.azurecr.io/frontend:latest
+
+**Step 3: Deploy to Azure App Service**
+
+Here are detailed Azure CLI commands to deploy your backend and frontend images:
+
+1- Create a resource group (if you don't have one already):
+  
+    az group create --name myResourceGroup --location eastus
+  
+2- Create an App Service plan:
+
+    az appservice plan create --name myAppServicePlan --resource-group myResourceGroup --sku B1 --is-linux
+
+3- Create the Web Apps for backend and frontend:
+
+    az webapp create --resource-group myResourceGroup --plan myAppServicePlan --name myBackendApp --deployment-container-image-name <your-acr-name>.azurecr.io/backend:latest
+
+    az webapp create --resource-group myResourceGroup --plan myAppServicePlan --name myFrontendApp --deployment-container-image-name <your-acr-name>.azurecr.io/frontend:latest
+
+4- Configure the Web Apps to use your Azure Container Registry:
+
+    az webapp config container set --name myBackendApp --resource-group myResourceGroup --docker-custom-image-name <your-acr-name>.azurecr.io/backend:latest --docker-registry-server-url https://<your-acr-name>.azurecr.io
+
+    az webapp config container set --name myFrontendApp --resource-group myResourceGroup --docker-custom-image-name <your-acr-name>.azurecr.io/frontend:latest --docker-registry-server-url https://<your-acr-name>.azurecr.io
+
+5- Set environment variables (e.g., database connection string) for backend app:
+
+    az webapp config appsettings set --resource-group myResourceGroup --name myBackendApp --settings DATABASE_URL="postgres://user:password@your-db-host:5432/dbname"
+
+6- Restart the Web Apps to apply changes:
+
+    az webapp restart --name myBackendApp --resource-group myResourceGroup
+    az webapp restart --name myFrontendApp --resource-group myResourceGroup
+
+7- Verify deployment by browsing to the URLs:
+
+    https://myBackendApp.azurewebsites.net
+    https://myFrontendApp.azurewebsites.net
